@@ -1,1 +1,7 @@
 node_modules
+.history
+yarn.lock
+package-lock.json
+*.vsix
+.DS_Store
+dist

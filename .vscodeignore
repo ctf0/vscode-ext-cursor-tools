@@ -4,3 +4,6 @@ test/**
 .gitignore
 jsconfig.json
 vsc-extension-quickstart.md
+.history
+src
+webpack.config.js

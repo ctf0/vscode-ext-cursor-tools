@@ -1,109 +1,120 @@
-'use strict';
-const vscode = require('vscode');
+'use strict'
+
+const vscode = require('vscode')
+const config = vscode.workspace.getConfiguration('cursor-tools')
 const decor = vscode.window.createTextEditorDecorationType({
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  borderColor: 'rgba(255, 255, 255, 0.3)',
-  light: {
-    borderColor: 'rgba(0, 0, 0, 0.3)',
-  }
-});
+    borderStyle: config.border.style,
+    borderWidth: config.border.width,
+    borderColor: config.border.color || new vscode.ThemeColor("editorCursor.foreground")
+})
 
 module.exports = {
-  onCommandToggleAnchor,
-  onCommandActivateCursors,
-  onCommandCleanAnchors,
-  onDidChangeTextDocument
-};
+    onCommandToggleAnchor,
+    onCommandActivateCursors,
+    onCommandCleanAnchors,
+    onDidChangeTextDocument
+}
 
-function onCommandToggleAnchor(textEditor, textEditorEdit) {
-  const currentDocumentOffset = textEditor.document.offsetAt(textEditor.selection.active);
-  const index = isAnchorExist(textEditor, currentDocumentOffset);
+function onCommandToggleAnchor(textEditor) {
+    let { document, selections, cursorAnchors } = textEditor
 
-  if (index === -1) {
-    textEditor.cursorAnchors.push(currentDocumentOffset);
-  } else {
-    textEditor.cursorAnchors.splice(index, 1);
-  }
+    for (const selection of selections) {
+        const currentDocumentOffset = document.offsetAt(selection.active)
+        const index = isAnchorExist(textEditor, currentDocumentOffset)
 
-  setContext(textEditor.cursorAnchors.length > 0);
+        index < 0
+            ? cursorAnchors.push(currentDocumentOffset)
+            : cursorAnchors.splice(index, 1)
+    }
 
-  updateDecorations(textEditor);
+    setContext(cursorAnchors.length > 0)
+    updateDecorations(textEditor)
 }
 
 function onCommandActivateCursors(textEditor, textEditorEdit) {
-  const currentDocumentOffset = textEditor.document.offsetAt(textEditor.selection.active);
+    let currentDocumentOffset = []
 
-  textEditor.selections = [currentDocumentOffset]
-    .concat(textEditor.cursorAnchors)
-    .map(createSelection.bind(textEditor));
+    if (config.includeCurrentCursorOnActivate) {
+        currentDocumentOffset = [textEditor.document.offsetAt(textEditor.selection.active)]
+    }
 
-  onCommandCleanAnchors(textEditor, textEditorEdit);
+    textEditor.selections = currentDocumentOffset
+        .concat(textEditor.cursorAnchors)
+        .map(createSelection.bind(textEditor))
+
+    onCommandCleanAnchors(textEditor, textEditorEdit)
 }
 
-function onCommandCleanAnchors(textEditor, textEditorEdit) {
-  textEditor.cursorAnchors = [];
+function onCommandCleanAnchors(textEditor) {
+    textEditor.cursorAnchors = []
 
-  setContext(false);
+    setContext(false)
 
-  updateDecorations(textEditor);
+    updateDecorations(textEditor)
 }
 
 function onDidChangeTextDocument(textDocumentChangeEvent) {
-  const textEditor = vscode.window.activeTextEditor;
-  const textDocument = textDocumentChangeEvent.document;
+    if (!textDocumentChangeEvent) {
+        return
+    }
 
-  if (textEditor.document !== textDocument) {
-    return;
-  }
+    const textEditor = vscode.window.activeTextEditor
 
-  const filters = textDocumentChangeEvent.contentChanges.map(contentChange => {
-    const offsetStart = textDocument.offsetAt(contentChange.range.start);
-    const offsetEnd = textDocument.offsetAt(contentChange.range.end);
+    if (!textEditor) {
+        return
+    }
 
-    return (offset) => !(offset >= offsetStart && offset <= offsetEnd);
-  });
+    const textDocument = textDocumentChangeEvent.document
 
-  textEditor.cursorAnchors = filters
-    .reduce((acc, fn) => acc.filter(fn), textEditor.cursorAnchors)
-    .map(offset => {
-      return textDocumentChangeEvent.contentChanges.reduce((acc, contentChange) => {
-        if (textDocument.offsetAt(contentChange.range.start) <= offset) {
-          return acc - contentChange.rangeLength + contentChange.text.length;
-        }
+    if (textEditor.document !== textDocument) {
+        return
+    }
 
-        return acc;
-      }, offset);
-    });
+    const filters = textDocumentChangeEvent.contentChanges.map((contentChange) => {
+        const offsetStart = textDocument.offsetAt(contentChange.range.start)
+        const offsetEnd = textDocument.offsetAt(contentChange.range.end)
 
-  updateDecorations(textEditor);
+        return (offset) => !(offset >= offsetStart && offset <= offsetEnd)
+    })
+
+    textEditor.cursorAnchors = filters
+        .reduce((acc, fn) => acc.filter(fn), textEditor.cursorAnchors)
+        .map((offset) => {
+            return textDocumentChangeEvent.contentChanges.reduce((acc, contentChange) => {
+                if (textDocument.offsetAt(contentChange.range.start) <= offset) {
+                    return acc - contentChange.rangeLength + contentChange.text.length
+                }
+
+                return acc
+            }, offset)
+        })
+
+    updateDecorations(textEditor)
 }
-
 
 function updateDecorations(textEditor) {
-  const decorRange = textEditor.cursorAnchors
-    .map(createRange.bind(textEditor));
+    const decorRange = textEditor.cursorAnchors
+        .map(createRange.bind(textEditor))
 
-  textEditor.setDecorations(decor, decorRange);
+    textEditor.setDecorations(decor, decorRange)
 }
 
-
 function isAnchorExist(textEditor, currentDocumentOffset) {
-  return textEditor.cursorAnchors.indexOf(currentDocumentOffset);
+    return textEditor.cursorAnchors.indexOf(currentDocumentOffset)
 }
 
 function createSelection(offset) {
-  const position = this.document.positionAt(offset);
+    const position = this.document.positionAt(offset)
 
-  return new vscode.Selection(position, position);
+    return new vscode.Selection(position, position)
 }
 
 function createRange(offset) {
-  const position = this.document.positionAt(offset);
+    const position = this.document.positionAt(offset)
 
-  return new vscode.Range(position, position);
+    return new vscode.Range(position, position)
 }
 
 function setContext(value) {
-  vscode.commands.executeCommand('setContext', 'cursorToolsAnchors', value);
+    vscode.commands.executeCommand('setContext', 'cursorToolsAnchors', value)
 }
