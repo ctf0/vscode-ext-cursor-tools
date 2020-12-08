@@ -2,7 +2,7 @@
     "name": "cursor-tools",
     "displayName": "Cursor tools",
     "description": "Leave anchors in the document and create multiple cursors out of them!",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "ctf0",
     "engines": {
         "vscode": "^1.1.0"
@@ -22,7 +22,7 @@
             "title": "Cursor tools",
             "type": "object",
             "properties": {
-                "cursor-tools.border": {
+                "cursorTools.border": {
                     "type": "object",
                     "default": {
                         "style": "solid",
@@ -31,7 +31,7 @@
                     },
                     "description": "cursor style"
                 },
-                "cursor-tools.includeCurrentCursorOnActivate": {
+                "cursorTools.includeCurrentCursorOnActivate": {
                     "type": "boolean",
                     "default": false,
                     "description": "include the current cursor when activating the saved anchors"
@@ -41,15 +41,15 @@
         "commands": [
             {
                 "command": "cursorToolsAnchorAdd",
-                "title": "Cursor tools: Toggle anchor at cursor position"
+                "title": "Cursor tools: Toggle anchor"
             },
             {
                 "command": "cursorToolsAnchorActivate",
-                "title": "Cursor tools: Activate cursors at all anchor positions"
+                "title": "Cursor tools: Activate all anchors"
             },
             {
                 "command": "cursorToolsAnchorClean",
-                "title": "Cursor tools: Clean all anchors in current document"
+                "title": "Cursor tools: Clean all anchors"
             }
         ],
         "menus": {

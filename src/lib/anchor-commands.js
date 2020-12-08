@@ -1,11 +1,11 @@
 'use strict'
 
 const vscode = require('vscode')
-const config = vscode.workspace.getConfiguration('cursor-tools')
+const config = vscode.workspace.getConfiguration('cursorTools')
 const decor = vscode.window.createTextEditorDecorationType({
-    borderStyle: config.border.style,
-    borderWidth: config.border.width,
-    borderColor: config.border.color || new vscode.ThemeColor("editorCursor.foreground")
+    borderStyle : config.border.style,
+    borderWidth : config.border.width,
+    borderColor : config.border.color || new vscode.ThemeColor('editorCursor.foreground')
 })
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
 }
 
 function onCommandToggleAnchor(textEditor) {
-    let { document, selections, cursorAnchors } = textEditor
+    let {document, selections, cursorAnchors} = textEditor
 
     for (const selection of selections) {
         const currentDocumentOffset = document.offsetAt(selection.active)

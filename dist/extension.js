@@ -72,11 +72,11 @@ module.exports =
 
 
 const vscode = __webpack_require__(1);
-const config = vscode.workspace.getConfiguration('cursor-tools');
+const config = vscode.workspace.getConfiguration('cursorTools');
 const decor = vscode.window.createTextEditorDecorationType({
     borderStyle: config.border.style,
     borderWidth: config.border.width,
-    borderColor: config.border.color || new vscode.ThemeColor("editorCursor.foreground")
+    borderColor: config.border.color || new vscode.ThemeColor('editorCursor.foreground')
 });
 
 module.exports = {
